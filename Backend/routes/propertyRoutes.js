@@ -15,12 +15,12 @@ const upload = require("../middlewares/upload");
 
 // Public routes
 router.get("/", getAllProperties);
+router.get("/seller/my-listings", protect, restrictTo("seller"), getMyListings);
 router.get("/:id", getProperty);
 
 // Seller-only routes
 router.use(protect, restrictTo("seller"));
 router.post("/", upload.array("images", 10), createProperty);
-router.get("/seller/my-listings", getMyListings);
 router.put("/:id", upload.array("images", 10), updateProperty);
 router.delete("/:id", deleteProperty);
 router.delete("/:id/images/:publicId", deletePropertyImage);

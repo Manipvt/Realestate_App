@@ -30,7 +30,7 @@ const propertySchema = new mongoose.Schema(
     },
     area: {
       value: { type: Number, required: [true, "Area value is required"], min: 0 },
-      unit: { type: String, enum: ["sqft", "sqyd", "acres", "cents", "guntas"], default: "sqft" },
+      unit: { type: String, enum: ["sqft", "sqyd", "sqmt", "acres", "acre", "cents", "guntas"], default: "sqft" },
     },
     price: {
       type: Number,

@@ -1,10 +1,11 @@
 import React, { useState, useCallback, memo } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Image,
   ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { useListingStore } from '@/store/listingStore';
 import { useAuthStore } from '@/store/authStore';
 import { PropertyType, ListingStatus } from '@/types';
@@ -21,6 +22,9 @@ const AMENITY_OPTIONS = [
   'Swimming Pool', 'Gym', 'Parking', '24/7 Security', 'Power Backup',
   'Clubhouse', 'Garden', 'Lift', 'CCTV', 'Water Connection', 'Road Facing',
 ];
+
+const AREA_UNITS = ['sqft', 'sqyd', 'sqmt', 'acres', 'cents', 'guntas'];
+const FACING_OPTIONS = ['north', 'south', 'east', 'west', 'north-east', 'north-west', 'south-east', 'south-west'];
 
 const STEPS = ['Basic Info', 'Location', 'Amenities', 'Preview'];
 
@@ -62,19 +66,41 @@ export default function AddListingScreen() {
     facing: '', address: '', city: '', state: '', pincode: '',
     amenities: [] as string[],
   });
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { addListing, isLoading } = useListingStore();
   const { user } = useAuthStore();
 
   const handleInputChange = useCallback((field: keyof typeof form, value: string) => {
-    console.log(`Field changed: ${field} = ${value}`);
     setForm(prev => {
-      const newForm = { ...prev, [field]: value };
-      console.log('New form state:', newForm);
-      return newForm;
+      return { ...prev, [field]: value };
     });
     setErrors(prev => ({ ...prev, [field]: '' }));
   }, []);
+
+  const handlePickImages = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission required', 'Please allow photo library permission to upload images.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+      selectionLimit: 10,
+    });
+
+    if (result.canceled) return;
+
+    const pickedUris = result.assets.map((asset) => asset.uri);
+    setSelectedImages((prev) => [...prev, ...pickedUris].slice(0, 10));
+  };
+
+  const handleRemoveImage = (uri: string) => {
+    setSelectedImages((prev) => prev.filter((item) => item !== uri));
+  };
 
   const toggleAmenity = (a: string) => {
     setForm((f) => ({
@@ -84,94 +110,62 @@ export default function AddListingScreen() {
   };
 
   const validateStep = () => {
-    console.log('Validating step:', step);
-    console.log('Current form data:', form);
-    
     const e: Record<string, string> = {};
     if (step === 0) {
-      console.log('Step 0 validation - checking title:', form.title);
-      console.log('Step 0 validation - title.trim():', form.title.trim());
       if (!form.title.trim()) {
         e.title = 'Title is required';
-        console.log('Title validation failed');
       }
-      
-      console.log('Step 0 validation - checking description:', form.description);
-      console.log('Step 0 validation - description.trim():', form.description.trim());
+
       if (!form.description.trim()) {
         e.description = 'Description is required';
-        console.log('Description validation failed');
       }
-      
-      console.log('Step 0 validation - checking price:', form.price);
+
       if (!form.price) {
         e.price = 'Price is required';
-        console.log('Price validation failed');
       }
-      
-      console.log('Step 0 validation - checking area:', form.area);
+
       if (!form.area.trim()) {
         e.area = 'Area is required';
-        console.log('Area validation failed');
       }
     }
     if (step === 1) {
-      console.log('Step 1 validation - checking address:', form.address);
       if (!form.address.trim()) {
         e.address = 'Address is required';
-        console.log('Address validation failed');
       }
-      
-      console.log('Step 1 validation - checking state:', form.state);
+      if (!form.city.trim()) {
+        e.city = 'City is required';
+      }
       if (!form.state.trim()) {
         e.state = 'State is required';
-        console.log('State validation failed');
       }
-      
-      console.log('Step 1 validation - checking pincode:', form.pincode);
       if (!form.pincode.trim()) {
         e.pincode = 'Pincode is required';
-        console.log('Pincode validation failed');
       }
     }
-    
-    console.log('Final validation errors:', e);
+
     setErrors(e);
-    const isValid = Object.keys(e).length === 0;
-    console.log('Is valid:', isValid);
-    return isValid;
+    return Object.keys(e).length === 0;
   };
 
   const handleNext = () => {
-    console.log('Next button pressed, current step:', step);
     const isValid = validateStep();
-    console.log('Validation result:', isValid);
     if (!isValid) {
-      console.log('Validation failed, not proceeding');
       return;
     }
     if (step < STEPS.length - 1) {
-      console.log('Moving to step:', step + 1);
       setStep((s) => s + 1);
-    } else {
-      console.log('Already at last step');
     }
   };
 
   const handleSubmit = async () => {
-    console.log('Submit button pressed');
-    console.log('Form data:', form);
-    console.log('User:', user);
-    
     try {
-      console.log('Calling addListing...');
       const listingData = {
         title: form.title, 
         description: form.description,
         propertyType: form.propertyType,
         price: Number(form.price), 
         area: Number(form.area),
-        areaUnit: form.areaUnit as 'sqft',
+        areaUnit: form.areaUnit,
         bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
         facing: form.facing || undefined,
@@ -185,20 +179,17 @@ export default function AddListingScreen() {
         amenities: form.amenities,
         sellerId: user?.id ?? '',
         sellerName: user?.name ?? '',
-        images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+        images: selectedImages,
         status: ListingStatus.ACTIVE,
       };
-      console.log('Listing data to send:', listingData);
-      
+
       await addListing(listingData);
-      console.log('Listing added successfully');
       Alert.alert('🎉 Listed!', 'Your property is now live.', [
         { text: 'View Listings', onPress: () => router.replace('/seller/my-listing') },
       ]);
     } catch (error: any) {
-      console.error('Error adding listing:', error);
-      console.error('Error response:', error?.response?.data);
-      Alert.alert('Error', `Failed to add listing: ${error?.message || 'Unknown error'}`);
+      const message = error?.response?.data?.message || error?.message || 'Unknown error';
+      Alert.alert('Error', `Failed to add listing: ${message}`);
     }
   };
 
@@ -304,7 +295,7 @@ export default function AddListingScreen() {
                 </View>
                 <View style={styles.unitPicker}>
                   <Text style={styles.label}>UNIT</Text>
-                  {['sqft', 'sqmt', 'acre'].map((u) => (
+                  {AREA_UNITS.map((u) => (
                     <TouchableOpacity
                       key={u}
                       style={[styles.unitBtn, form.areaUnit === u && styles.unitBtnActive]}
@@ -342,7 +333,23 @@ export default function AddListingScreen() {
                   </View>
                 </View>
               )}
-              <Field label="FACING (optional)" field="facing" placeholder="e.g. North, East-West" value={form.facing} onChangeText={(t: string) => handleInputChange('facing', t)} error={errors.facing} />
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>FACING (optional)</Text>
+                <View style={styles.facingGrid}>
+                  {FACING_OPTIONS.map((direction) => (
+                    <TouchableOpacity
+                      key={direction}
+                      style={[styles.facingChip, form.facing === direction && styles.facingChipActive]}
+                      onPress={() => setForm((f) => ({ ...f, facing: f.facing === direction ? '' : direction }))}
+                    >
+                      <Text style={[styles.facingChipText, form.facing === direction && styles.facingChipTextActive]}>
+                        {direction}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
           )}
 
@@ -383,6 +390,24 @@ export default function AddListingScreen() {
 
           {step === 2 && (
             <View style={styles.stepContent}>
+              <Text style={styles.stepTitle}>Photos & Amenities</Text>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>PROPERTY IMAGES (UP TO 10)</Text>
+                <TouchableOpacity style={styles.imagePickerBtn} onPress={handlePickImages}>
+                  <Text style={styles.imagePickerBtnText}>+ Select Images</Text>
+                </TouchableOpacity>
+                <View style={styles.imagePreviewRow}>
+                  {selectedImages.map((uri) => (
+                    <View key={uri} style={styles.imageThumbWrap}>
+                      <Image source={{ uri }} style={styles.imageThumb} />
+                      <TouchableOpacity style={styles.imageRemoveBtn} onPress={() => handleRemoveImage(uri)}>
+                        <Text style={styles.imageRemoveBtnText}>×</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
               <Text style={styles.stepSubtitle}>Select all that apply</Text>
               <View style={styles.amenityGrid}>
                 {AMENITY_OPTIONS.map((a) => (
@@ -509,6 +534,42 @@ const styles = StyleSheet.create({
   unitBtnActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
   unitBtnText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
   unitBtnTextActive: { color: Colors.primary },
+  facingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  facingChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  facingChipActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
+  facingChipText: { ...Typography.bodySmall, color: Colors.textSecondary, textTransform: 'capitalize' },
+  facingChipTextActive: { color: Colors.primary, fontWeight: '700' },
+  imagePickerBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+  },
+  imagePickerBtnText: { ...Typography.bodySmall, color: Colors.primary, fontWeight: '700' },
+  imagePreviewRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: Spacing.sm },
+  imageThumbWrap: { position: 'relative' },
+  imageThumb: { width: 72, height: 72, borderRadius: Radius.sm },
+  imageRemoveBtn: {
+    position: 'absolute',
+    right: -6,
+    top: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageRemoveBtnText: { color: Colors.white, fontWeight: '700', lineHeight: 18 },
   amenityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   amenityChip: {
     flexDirection: 'row', paddingHorizontal: 14, paddingVertical: 10,

@@ -34,7 +34,7 @@ export interface Listing {
   propertyType: PropertyType;
   price: number;
   area: number;
-  areaUnit: 'sqft' | 'sqmt' | 'acre';
+  areaUnit: 'sqft' | 'sqyd' | 'sqmt' | 'acres' | 'cents' | 'guntas';
   location: Location;
   amenities: string[];
   images: string[];

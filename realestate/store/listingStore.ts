@@ -43,9 +43,9 @@ export const useListingStore = create<ListingState>((set, get) => ({
     set({ isLoading: true });
     try {
       const myListings = await listingApi.getMyListings();
-      set({ myListings: myListings.data || [], isLoading: false });
+      set({ myListings: myListings || [], isLoading: false });
     } catch (error: any) {
-      console.error('Failed to fetch my listings:', error);
+      console.warn('Failed to fetch my listings:', error?.message || 'Unknown error');
       set({ myListings: [], isLoading: false });
     }
   },
@@ -95,21 +95,16 @@ export const useListingStore = create<ListingState>((set, get) => ({
   },
 
   addListing: async (listing: Partial<Listing>) => {
-    console.log('Store addListing called with:', listing);
     set({ isLoading: true });
     try {
-      console.log('Calling listingApi.createListing...');
       const newListing = await listingApi.createListing(listing);
-      console.log('API response:', newListing);
       set((state) => ({ 
         listings: [newListing, ...state.listings], 
         myListings: [newListing, ...state.myListings], 
         isLoading: false 
       }));
-      console.log('Store updated successfully');
     } catch (error: any) {
-      console.error('Store error in addListing:', error);
-      console.error('Error response:', error?.response?.data);
+      console.warn('Store error in addListing:', error?.response?.data?.message || error?.message || 'Unknown error');
       set({ isLoading: false });
       throw error;
     }

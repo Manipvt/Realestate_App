@@ -3,6 +3,18 @@ const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const { uploadMultipleImages, deleteMultipleImages } = require("../services/cloudinaryService");
 
+const normalizeFacing = (facing) => {
+  if (!facing || typeof facing !== "string") return facing;
+  return facing.trim().toLowerCase().replace(/[\s_]+/g, "-");
+};
+
+const normalizeAreaUnit = (unit) => {
+  if (!unit || typeof unit !== "string") return unit;
+  const normalized = unit.trim().toLowerCase();
+  if (normalized === "acre") return "acres";
+  return normalized;
+};
+
 /**
  * POST /api/properties
  * Seller creates a property listing with images
@@ -51,13 +63,18 @@ exports.createProperty = catchAsync(async (req, res, next) => {
     amenities = req.body.amenities;
   }
 
+  const normalizedFacing = normalizeFacing(req.body.facing);
+  if (area && area.unit) {
+    area.unit = normalizeAreaUnit(area.unit);
+  }
+
   const property = await Property.create({
     seller: req.user.id,
     title: req.body.title,
     description: req.body.description,
     propertyType: req.body.propertyType,
     price: req.body.price,
-    facing: req.body.facing,
+    facing: normalizedFacing,
     area,
     location,
     roadAccess,
@@ -150,6 +167,14 @@ exports.updateProperty = catchAsync(async (req, res, next) => {
       try { updates[field] = JSON.parse(updates[field]); } catch {}
     }
   });
+
+  if (updates.facing) {
+    updates.facing = normalizeFacing(updates.facing);
+  }
+
+  if (updates.area && updates.area.unit) {
+    updates.area.unit = normalizeAreaUnit(updates.area.unit);
+  }
 
   const updated = await Property.findByIdAndUpdate(
     req.params.id,

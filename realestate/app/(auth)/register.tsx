@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
@@ -50,7 +51,12 @@ export default function RegisterScreen() {
     if (!form.email.trim()) e.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email';
     if (!form.phone.trim()) e.phone = 'Phone is required';
-    else if (form.phone.replace(/\D/g, '').length < 10) e.phone = 'Enter a valid phone number';
+    else {
+      const phoneDigits = form.phone.replace(/\D/g, '');
+      if (!/^([6-9]\d{9}|91[6-9]\d{9})$/.test(phoneDigits)) {
+        e.phone = 'Enter a valid Indian phone number';
+      }
+    }
     if (!form.password) e.password = 'Password is required';
     else if (form.password.length < 6) e.password = 'Minimum 6 characters';
     setErrors(e);
@@ -63,8 +69,9 @@ export default function RegisterScreen() {
       await register(form);
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Registration error:', error);
-      const message = error.response?.data?.message || error.message || 'Registration failed. Try again.';
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || error.message || 'Registration failed. Try again.'
+        : 'Registration failed. Try again.';
       setErrors({ email: message });
     }
   };
