@@ -1,5 +1,6 @@
 const Unlock = require("../models/unlockModel");
 const User = require("../models/userModel");
+const Property = require("../models/propertyModel");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 
@@ -9,6 +10,9 @@ const catchAsync = require("../utils/catchAsync");
  */
 exports.getSellerContact = catchAsync(async (req, res, next) => {
   const { propertyId } = req.params;
+  const allowUnpaidPreview =
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_UNPAID_CONTACT_PREVIEW !== "false";
 
   // Check unlock record exists and is not expired
   const unlock = await Unlock.findOne({
@@ -17,7 +21,7 @@ exports.getSellerContact = catchAsync(async (req, res, next) => {
     expiresAt: { $gt: new Date() },
   });
 
-  if (!unlock) {
+  if (!unlock && !allowUnpaidPreview) {
     return next(
       new AppError(
         "You have not unlocked this seller's contact yet. Please complete payment first.",
@@ -26,18 +30,28 @@ exports.getSellerContact = catchAsync(async (req, res, next) => {
     );
   }
 
+  let sellerId = unlock?.seller;
+
+  if (!sellerId && allowUnpaidPreview) {
+    const property = await Property.findById(propertyId).select("seller");
+    if (!property) return next(new AppError("Property not found.", 404));
+    sellerId = property.seller;
+  }
+
   // Fetch only necessary seller details — never expose password or other sensitive fields
-  const seller = await User.findById(unlock.seller).select("name email phone");
+  const seller = await User.findById(sellerId).select("name email phone");
   if (!seller) return next(new AppError("Seller account no longer exists.", 404));
 
   res.status(200).json({
     success: true,
+    unlocked: Boolean(unlock),
+    previewMode: Boolean(!unlock && allowUnpaidPreview),
     seller: {
       name: seller.name,
       email: seller.email,
       phone: seller.phone,
     },
-    unlockedUntil: unlock.expiresAt,
+    unlockedUntil: unlock?.expiresAt,
   });
 });
 

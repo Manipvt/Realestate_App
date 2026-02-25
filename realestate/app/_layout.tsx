@@ -8,12 +8,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [loadUser]);
 
   return (
     <>
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+      <Stack initialRouteName="index" screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />

@@ -1,20 +1,20 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Linking, Alert,
+  View, Text, TouchableOpacity, StyleSheet, Linking, Alert, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
+import { apiClient } from '@/services/api/client';
 
-// Mock seller contact data revealed after payment
-const MOCK_CONTACT = {
-  name: 'Priya Mehta',
-  phone: '+91 98765 43210',
-  email: 'priya.mehta@gmail.com',
-  businessName: 'Mehta Realty Group',
-  whatsapp: '+91 98765 43210',
-  timing: 'Mon–Sat, 10 AM – 7 PM',
-};
+interface SellerContactResponse {
+  seller: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  unlockedUntil?: string;
+}
 
 function ContactAction({ emoji, label, sub, color, onPress }: any) {
   return (
@@ -35,13 +35,95 @@ function ContactAction({ emoji, label, sub, color, onPress }: any) {
 
 export default function SellerContactScreen() {
   const { listingId, listingTitle } = useLocalSearchParams<{ listingId: string; listingTitle: string }>();
+  const resolvedListingId = Array.isArray(listingId) ? listingId[0] : listingId;
+  const resolvedListingTitle = Array.isArray(listingTitle) ? listingTitle[0] : listingTitle;
+  const [isLoading, setIsLoading] = useState(true);
+  const [sellerContact, setSellerContact] = useState<SellerContactResponse['seller'] | null>(null);
 
-  const handleCall = () => Linking.openURL(`tel:${MOCK_CONTACT.phone}`);
-  const handleEmail = () => Linking.openURL(`mailto:${MOCK_CONTACT.email}`);
-  const handleWhatsApp = () => {
-    const number = MOCK_CONTACT.whatsapp.replace(/\D/g, '');
-    Linking.openURL(`https://wa.me/${number}?text=Hi, I'm interested in your property: ${listingTitle}`);
+  useEffect(() => {
+    const fetchSellerContact = async () => {
+      if (!resolvedListingId) {
+        Alert.alert('Missing Listing', 'Listing details are missing. Please open the property again.', [
+          { text: 'Back', onPress: () => router.back() },
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get<SellerContactResponse>(`/unlock/${resolvedListingId}`);
+        const payload = response.data;
+        setSellerContact(payload.seller);
+      } catch (error: any) {
+        const message = error?.response?.data?.message || 'Unable to load seller contact.';
+        const statusCode = error?.response?.status;
+
+        if (statusCode === 403) {
+          Alert.alert(
+            'Unlock Required',
+            message,
+            [
+              {
+                text: 'Unlock Now',
+                onPress: () =>
+                  router.replace({
+                    pathname: '/buyer/payment',
+                    params: { listingId: resolvedListingId, listingTitle: resolvedListingTitle },
+                  }),
+              },
+              { text: 'Back', onPress: () => router.back(), style: 'cancel' },
+            ]
+          );
+        } else {
+          Alert.alert('Error', message, [{ text: 'Back', onPress: () => router.back() }]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSellerContact();
+  }, [resolvedListingId, resolvedListingTitle]);
+
+  const phoneNumber = useMemo(() => sellerContact?.phone || '', [sellerContact?.phone]);
+  const emailAddress = useMemo(() => sellerContact?.email || '', [sellerContact?.email]);
+  const sellerName = useMemo(() => sellerContact?.name || 'Seller', [sellerContact?.name]);
+
+  const handleCall = () => {
+    if (!phoneNumber) return;
+    Linking.openURL(`tel:${phoneNumber}`);
   };
+
+  const handleEmail = () => {
+    if (!emailAddress) return;
+    Linking.openURL(`mailto:${emailAddress}`);
+  };
+
+  const handleWhatsApp = () => {
+    const number = phoneNumber.replace(/\D/g, '');
+    if (!number) return;
+    Linking.openURL(`https://wa.me/${number}?text=Hi, I'm interested in your property: ${resolvedListingTitle || ''}`);
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!sellerContact) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.loader}>
+          <Text style={styles.emptyStateText}>Seller contact is unavailable.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -65,11 +147,11 @@ export default function SellerContactScreen() {
         {/* Seller card */}
         <View style={styles.sellerCard}>
           <View style={styles.sellerAvatar}>
-            <Text style={styles.sellerAvatarText}>{MOCK_CONTACT.name[0]}</Text>
+            <Text style={styles.sellerAvatarText}>{sellerName[0]}</Text>
           </View>
           <View style={styles.sellerDetails}>
-            <Text style={styles.sellerName}>{MOCK_CONTACT.name}</Text>
-            <Text style={styles.sellerBiz}>{MOCK_CONTACT.businessName}</Text>
+            <Text style={styles.sellerName}>{sellerName}</Text>
+            <Text style={styles.sellerBiz}>Verified Seller</Text>
             <View style={styles.verifiedBadge}>
               <Text style={styles.verifiedText}>✓ Verified Seller</Text>
             </View>
@@ -81,31 +163,31 @@ export default function SellerContactScreen() {
           <Text style={styles.infoSectionTitle}>Contact Details</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>📞 Phone</Text>
-            <Text style={styles.infoVal} selectable>{MOCK_CONTACT.phone}</Text>
+            <Text style={styles.infoVal} selectable>{phoneNumber}</Text>
           </View>
           <View style={styles.infoDivider} />
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>✉ Email</Text>
-            <Text style={styles.infoVal} selectable>{MOCK_CONTACT.email}</Text>
+            <Text style={styles.infoVal} selectable>{emailAddress}</Text>
           </View>
           <View style={styles.infoDivider} />
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>🕐 Timing</Text>
-            <Text style={styles.infoVal}>{MOCK_CONTACT.timing}</Text>
+            <Text style={styles.infoVal}>Mon–Sat, 10 AM – 7 PM</Text>
           </View>
         </View>
 
         {/* Property context */}
         <View style={styles.propertyRef}>
           <Text style={styles.propertyRefLabel}>FOR PROPERTY</Text>
-          <Text style={styles.propertyRefTitle} numberOfLines={1}>{listingTitle}</Text>
+          <Text style={styles.propertyRefTitle} numberOfLines={1}>{resolvedListingTitle}</Text>
         </View>
 
         {/* Actions */}
         <View style={styles.actions}>
           <Text style={styles.actionsTitle}>Connect Now</Text>
           <ContactAction
-            emoji="📞" label="Call Seller" sub={MOCK_CONTACT.phone}
+            emoji="📞" label="Call Seller" sub={phoneNumber}
             color={Colors.success} onPress={handleCall}
           />
           <ContactAction
@@ -113,7 +195,7 @@ export default function SellerContactScreen() {
             color="#25D366" onPress={handleWhatsApp}
           />
           <ContactAction
-            emoji="✉️" label="Send Email" sub={MOCK_CONTACT.email}
+            emoji="✉️" label="Send Email" sub={emailAddress}
             color={Colors.primary} onPress={handleEmail}
           />
         </View>
@@ -131,6 +213,8 @@ export default function SellerContactScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyStateText: { ...Typography.body, color: Colors.textSecondary },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.md,

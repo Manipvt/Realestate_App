@@ -45,7 +45,7 @@ export default function ListingDetailsScreen() {
     if (!listing) return;
     router.push({
       pathname: '/buyer/seller-contact',
-      query: { 
+      params: {
         listingId: listing.id,
         listingTitle: listing.title 
       }
