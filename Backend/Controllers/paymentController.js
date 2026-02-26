@@ -82,7 +82,11 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
 
   // 2. Find and update payment record
   const payment = await Payment.findOneAndUpdate(
-    { "razorpay.orderId": razorpay_order_id, buyer: req.user.id },
+    {
+      "razorpay.orderId": razorpay_order_id,
+      buyer: req.user.id,
+      property: propertyId,
+    },
     {
       "razorpay.paymentId": razorpay_payment_id,
       "razorpay.signature": razorpay_signature,
@@ -94,7 +98,7 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
   if (!payment) return next(new AppError("Payment record not found.", 404));
 
   // 3. Get seller from property
-  const property = await Property.findById(propertyId).select("seller");
+  const property = await Property.findById(payment.property).select("seller");
   if (!property) return next(new AppError("Property not found.", 404));
 
   // 4. Create unlock record (upsert to avoid duplicates if webhook fires twice)

@@ -1,56 +1,53 @@
 import { create } from 'zustand';
-import { paymentApi, type ContactDetails } from '@/services/api/payment.api';
+import {
+  paymentApi,
+  type CreateOrderResponse,
+  type VerifyPaymentPayload,
+  type PaymentHistoryItem,
+} from '@/services/api/payment.api';
 
 interface PaymentState {
   isLoading: boolean;
-  purchasedContacts: ContactDetails[];
-  currentPayment: {
-    clientSecret: string;
-    amount: number;
-    listingId: string;
-  } | null;
-  createPaymentIntent: (listingId: string) => Promise<void>;
-  confirmPayment: (paymentIntentId: string) => Promise<ContactDetails>;
-  fetchPurchasedContacts: () => Promise<void>;
+  payments: PaymentHistoryItem[];
+  currentOrder: CreateOrderResponse | null;
+  createOrder: (propertyId: string) => Promise<CreateOrderResponse>;
+  verifyPayment: (payload: VerifyPaymentPayload) => Promise<void>;
+  fetchMyPayments: () => Promise<void>;
 }
 
 export const usePaymentStore = create<PaymentState>((set, get) => ({
   isLoading: false,
-  purchasedContacts: [],
-  currentPayment: null,
+  payments: [],
+  currentOrder: null,
 
-  createPaymentIntent: async (listingId: string) => {
+  createOrder: async (propertyId: string) => {
     set({ isLoading: true });
     try {
-      const payment = await paymentApi.createPaymentIntent(listingId);
-      set({ currentPayment: payment, isLoading: false });
+      const order = await paymentApi.createOrder(propertyId);
+      set({ currentOrder: order, isLoading: false });
+      return order;
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  confirmPayment: async (paymentIntentId: string) => {
+  verifyPayment: async (payload: VerifyPaymentPayload) => {
     set({ isLoading: true });
     try {
-      const contactDetails = await paymentApi.confirmPayment(paymentIntentId);
-      set((state) => ({
-        purchasedContacts: [...state.purchasedContacts, contactDetails],
-        currentPayment: null,
-        isLoading: false,
-      }));
-      return contactDetails;
+      await paymentApi.verifyPayment(payload);
+      set({ currentOrder: null, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error;
     }
   },
 
-  fetchPurchasedContacts: async () => {
+  fetchMyPayments: async () => {
     set({ isLoading: true });
     try {
-      const contacts = await paymentApi.getPurchasedContacts();
-      set({ purchasedContacts: contacts, isLoading: false });
+      const response = await paymentApi.getMyPayments();
+      set({ payments: response.payments, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
       throw error;

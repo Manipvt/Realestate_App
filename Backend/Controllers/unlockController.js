@@ -10,9 +10,7 @@ const catchAsync = require("../utils/catchAsync");
  */
 exports.getSellerContact = catchAsync(async (req, res, next) => {
   const { propertyId } = req.params;
-  const allowUnpaidPreview =
-    process.env.NODE_ENV !== "production" &&
-    process.env.ALLOW_UNPAID_CONTACT_PREVIEW !== "false";
+  const allowUnpaidPreview = process.env.ALLOW_UNPAID_CONTACT_PREVIEW === "true";
 
   // Check unlock record exists and is not expired
   const unlock = await Unlock.findOne({

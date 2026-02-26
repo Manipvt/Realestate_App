@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, Alert, ActivityIndicator,
+  ScrollView, Alert, ActivityIndicator, Platform, NativeModules,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
+import RazorpayCheckout from 'react-native-razorpay';
+import Constants from 'expo-constants';
+import { AxiosError } from 'axios';
+import { paymentApi } from '@/services/api/payment.api';
+import { useAuthStore } from '@/store/authStore';
 
 const PAYMENT_METHODS = [
   { id: 'upi', label: 'UPI', emoji: '📱', desc: 'Pay via any UPI app' },
@@ -13,31 +18,149 @@ const PAYMENT_METHODS = [
   { id: 'netbanking', label: 'Net Banking', emoji: '🏦', desc: 'All major banks' },
 ];
 
+const isRazorpayAvailable =
+  !!RazorpayCheckout && typeof (RazorpayCheckout as { open?: unknown }).open === 'function';
+
+const hasNativeRazorpayModule = Boolean(
+  (NativeModules as Record<string, unknown>).RazorpayCheckout ||
+  (NativeModules as Record<string, unknown>).RNRazorpayCheckout ||
+  (NativeModules as Record<string, unknown>).RazorpayModule
+);
+
 export default function PaymentScreen() {
-  const { listingId, listingTitle, price } = useLocalSearchParams<{
-    listingId: string; listingTitle: string; price?: string;
+  const { listingId, listingTitle } = useLocalSearchParams<{
+    listingId: string; listingTitle: string;
   }>();
+  const { user } = useAuthStore();
   const [selectedMethod, setSelectedMethod] = useState('upi');
   const [isPaying, setIsPaying] = useState(false);
-  const [upiId, setUpiId] = useState('');
 
   const UNLOCK_PRICE = 99;
   const gst = Math.round(UNLOCK_PRICE * 0.18);
   const total = UNLOCK_PRICE + gst;
 
   const handlePay = async () => {
+    const resolvedListingId = Array.isArray(listingId) ? listingId[0] : listingId;
+    const resolvedListingTitle = Array.isArray(listingTitle) ? listingTitle[0] : listingTitle;
+
+    if (!resolvedListingId) {
+      Alert.alert('Missing Listing', 'Property details are missing. Please try again from listing page.');
+      return;
+    }
+
+    if (Platform.OS === 'web') {
+      Alert.alert('Not Supported', 'Razorpay native checkout works on Android/iOS app builds.');
+      return;
+    }
+
+    const isExpoGo = Constants.appOwnership === 'expo';
+    if (isExpoGo) {
+      Alert.alert(
+        'Payment Unavailable',
+        'Razorpay is not supported in Expo Go. Please run a development build or production build to make payments.'
+      );
+      return;
+    }
+
+    if (!isRazorpayAvailable || !hasNativeRazorpayModule) {
+      Alert.alert(
+        'Payment Unavailable',
+        'Razorpay SDK is not available in this build. Use a Development/Production build (not Expo Go) to complete payments.'
+      );
+      return;
+    }
+
     setIsPaying(true);
-    // Simulate payment
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsPaying(false);
-    Alert.alert(
-      '✅ Payment Successful!',
-      'You can now view the seller\'s contact details.',
-      [{
-        text: 'View Contact',
-        onPress: () => router.replace({ pathname: '/buyer/seller-contact', params: { listingId, listingTitle } }),
-      }],
-    );
+
+    try {
+      const order = await paymentApi.createOrder(resolvedListingId);
+
+      if (order.alreadyUnlocked) {
+        Alert.alert('Already Unlocked', order.message || 'Seller contact is already unlocked.', [
+          {
+            text: 'View Contact',
+            onPress: () =>
+              router.replace({
+                pathname: '/buyer/seller-contact',
+                params: { listingId: resolvedListingId, listingTitle: resolvedListingTitle },
+              }),
+          },
+        ]);
+        return;
+      }
+
+      if (!order.orderId || !order.amount || !order.keyId) {
+        throw new Error('Unable to start payment. Please try again.');
+      }
+
+      const checkoutOpen = (RazorpayCheckout as { open?: (options: any) => Promise<any> }).open;
+      if (typeof checkoutOpen !== 'function') {
+        throw new Error('Razorpay checkout is unavailable in this app build.');
+      }
+
+      const paymentResult = await checkoutOpen({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency || 'INR',
+        name: 'RealEstate App',
+        description: 'Unlock seller contact details',
+        order_id: order.orderId,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || '',
+        },
+        theme: { color: Colors.primary },
+      });
+
+      await paymentApi.verifyPayment({
+        razorpay_order_id: paymentResult.razorpay_order_id,
+        razorpay_payment_id: paymentResult.razorpay_payment_id,
+        razorpay_signature: paymentResult.razorpay_signature,
+        propertyId: resolvedListingId,
+      });
+
+      Alert.alert(
+        '✅ Payment Successful!',
+        'You can now view the seller\'s contact details.',
+        [
+          {
+            text: 'View Contact',
+            onPress: () =>
+              router.replace({
+                pathname: '/buyer/seller-contact',
+                params: { listingId: resolvedListingId, listingTitle: resolvedListingTitle },
+              }),
+          },
+        ]
+      );
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        const razorpayError = error as { code?: number; description?: string };
+        if (razorpayError.code === 0 || razorpayError.description?.toLowerCase().includes('cancel')) {
+          Alert.alert('Payment Cancelled', 'You cancelled the payment.');
+          return;
+        }
+
+        Alert.alert('Payment Failed', razorpayError.description || 'Unable to complete payment.');
+        return;
+      }
+
+      const axiosError = error as AxiosError<{ message?: string }>;
+      const message =
+        axiosError.response?.data?.message ||
+        (error instanceof Error ? error.message : 'Something went wrong while processing payment.');
+
+      const normalizedMessage =
+        message.toLowerCase().includes("cannot read property 'open' of null") ||
+        message.toLowerCase().includes('open of null')
+          ? 'Razorpay is not available in this app build. Please use a development build or production build.'
+          : message;
+
+      Alert.alert('Payment Error', normalizedMessage);
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   return (
