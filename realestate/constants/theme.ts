@@ -1,37 +1,70 @@
-export const Colors = {
-  primary: '#1B2B4B',       // Deep navy
-  primaryLight: '#2E4270',
-  accent: '#C97B4B',        // Terracotta
-  accentLight: '#E8A87C',
-  accentSoft: '#F5E6D8',
-  background: '#FAF8F5',    // Warm cream
-  surface: '#FFFFFF',
-  surfaceAlt: '#F2EDE6',
-  text: '#1A1A1A',
-  textSecondary: '#6B6560',
-  textMuted: '#A09890',
-  border: '#E8E0D5',
-  borderLight: '#F0EAE1',
-  success: '#2D7A4F',
-  successLight: '#E8F5EE',
-  error: '#C0392B',
-  errorLight: '#FDEDEC',
-  warning: '#D4820A',
-  warningLight: '#FEF3E2',
-  white: '#FFFFFF',
-  black: '#000000',
-  overlay: 'rgba(27, 43, 75, 0.5)',
-  shadow: 'rgba(27, 43, 75, 0.12)',
-  light: {
-    icon: '#1A1A1A',
-    background: '#FFFFFF',
+const tintColorLight = '#1B2B4B';
+const tintColorDark = '#E8A87C';
+
+const lightColors = {
+    primary: '#1B2B4B',
+    primaryLight: '#2E4270',
+    accent: '#C97B4B',
+    accentLight: '#E8A87C',
+    accentSoft: '#F5E6D8',
+    background: '#FAF8F5',
+    surface: '#FFFFFF',
+    surfaceAlt: '#F2EDE6',
     text: '#1A1A1A',
-  },
-  dark: {
-    icon: '#FFFFFF',
-    background: '#1A1A1A',
-    text: '#FFFFFF',
-  },
+    textSecondary: '#6B6560',
+    textMuted: '#A09890',
+    border: '#E8E0D5',
+    borderLight: '#F0EAE1',
+    success: '#2D7A4F',
+    successLight: '#E8F5EE',
+    error: '#C0392B',
+    errorLight: '#FDEDEC',
+    warning: '#D4820A',
+    warningLight: '#FEF3E2',
+    white: '#FFFFFF',
+    black: '#000000',
+    overlay: 'rgba(27, 43, 75, 0.5)',
+    shadow: 'rgba(27, 43, 75, 0.12)',
+    tint: tintColorLight,
+    icon: '#1A1A1A',
+    tabIconDefault: '#6B6560',
+    tabIconSelected: tintColorLight,
+  };
+
+const darkColors = {
+    primary: '#F0EAE1',
+    primaryLight: '#D1C8B8',
+    accent: '#E8A87C',
+    accentLight: '#F5E6D8',
+    accentSoft: '#4A3324',
+    background: '#121212',
+    surface: '#1E1E1E',
+    surfaceAlt: '#2C2C2C',
+    text: '#EFEFEF',
+    textSecondary: '#B0B0B0',
+    textMuted: '#7A7A7A',
+    border: '#333333',
+    borderLight: '#444444',
+    success: '#4ADE80',
+    successLight: '#143823',
+    error: '#F87171',
+    errorLight: '#421E1E',
+    warning: '#FBBF24',
+    warningLight: '#45350E',
+    white: '#FFFFFF',
+    black: '#000000',
+    overlay: 'rgba(0, 0, 0, 0.7)',
+    shadow: 'rgba(0, 0, 0, 0.5)',
+    tint: tintColorDark,
+    icon: '#EFEFEF',
+    tabIconDefault: '#7A7A7A',
+    tabIconSelected: tintColorDark,
+  };
+
+export const Colors = {
+  ...lightColors,
+  light: lightColors,
+  dark: darkColors,
 };
 
 export const Typography = {
@@ -58,21 +91,18 @@ export const Radius = {
 
 export const Shadow = {
   sm: {
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
     elevation: 5,
   },
   lg: {
-    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
     shadowRadius: 20,

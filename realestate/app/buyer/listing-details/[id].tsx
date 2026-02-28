@@ -3,12 +3,13 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Share, Alert
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useListingStore } from '@/store/listingStore';
 import { useAuthStore } from '@/store/authStore';
 import { Listing } from '@/types';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme-color';
 
 function formatPrice(price: number) {
   if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
@@ -18,6 +19,8 @@ function formatPrice(price: number) {
 
 export default function ListingDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
+  const colors = useTheme();
   const { listings, savedListings, toggleSave }: { listings: Listing[], savedListings: string[], toggleSave: (id: string) => void } = useListingStore();
   const { user }: { user: any } = useAuthStore();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -47,16 +50,16 @@ export default function ListingDetailsScreen() {
       pathname: '/buyer/seller-contact',
       params: {
         listingId: listing.id,
-        listingTitle: listing.title 
+        listingTitle: listing.title
       }
     } as any);
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -64,9 +67,9 @@ export default function ListingDetailsScreen() {
 
   if (!listing) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.error}>
-          <Text style={styles.errorText}>Property not found</Text>
+          <Text style={[styles.errorText, { color: colors.textSecondary }]}>Property not found</Text>
         </View>
       </SafeAreaView>
     );
@@ -75,8 +78,8 @@ export default function ListingDetailsScreen() {
   const isSaved = savedListings.includes(listing.id);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}>
         {/* Header with back button */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -102,54 +105,54 @@ export default function ListingDetailsScreen() {
         {/* Property info */}
         <View style={styles.content}>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>Contact for Price</Text>
-            <View style={styles.typeBadge}>
-              <Text style={styles.typeBadgeText}>{listing.propertyType.toUpperCase()}</Text>
+            <Text style={[styles.price, { color: colors.accent }]}>Contact for Price</Text>
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.white }]}>{listing.propertyType.toUpperCase()}</Text>
             </View>
           </View>
 
-          <Text style={styles.title}>{listing.title}</Text>
-          <Text style={styles.location}>📍 {listing.location.address}, {listing.location.city}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{listing.title}</Text>
+          <Text style={[styles.location, { color: colors.textSecondary }]}>📍 {listing.location.address}, {listing.location.city}</Text>
 
           {/* Property specs */}
           <View style={styles.specs}>
             {listing.bedrooms && (
               <View style={styles.spec}>
                 <Text style={styles.specIcon}>🛏</Text>
-                <Text style={styles.specText}>{listing.bedrooms} Beds</Text>
+                <Text style={[styles.specText, { color: colors.text }]}>{listing.bedrooms} Beds</Text>
               </View>
             )}
             {listing.bathrooms && (
               <View style={styles.spec}>
                 <Text style={styles.specIcon}>🚿</Text>
-                <Text style={styles.specText}>{listing.bathrooms} Baths</Text>
+                <Text style={[styles.specText, { color: colors.text }]}>{listing.bathrooms} Baths</Text>
               </View>
             )}
             <View style={styles.spec}>
               <Text style={styles.specIcon}>📐</Text>
-              <Text style={styles.specText}>{listing.area} {listing.areaUnit}</Text>
+              <Text style={[styles.specText, { color: colors.text }]}>{listing.area} {listing.areaUnit}</Text>
             </View>
             {listing.facing && (
               <View style={styles.spec}>
                 <Text style={styles.specIcon}>🧭</Text>
-                <Text style={styles.specText}>{listing.facing}</Text>
+                <Text style={[styles.specText, { color: colors.text }]}>{listing.facing}</Text>
               </View>
             )}
           </View>
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description}>{listing.description}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Description</Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>{listing.description}</Text>
           </View>
 
           {/* Amenities */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Amenities</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Amenities</Text>
             <View style={styles.amenities}>
               {listing.amenities.map((amenity, index) => (
-                <View key={index} style={styles.amenity}>
-                  <Text style={styles.amenityText}>{amenity}</Text>
+                <View key={index} style={[styles.amenity, { backgroundColor: colors.surfaceAlt }]}>
+                  <Text style={[styles.amenityText, { color: colors.text }]}>{amenity}</Text>
                 </View>
               ))}
             </View>
@@ -157,11 +160,11 @@ export default function ListingDetailsScreen() {
 
           {/* Seller info */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Listed by</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Listed by</Text>
             <View style={styles.seller}>
               <View style={styles.sellerInfo}>
-                <Text style={styles.sellerName}>{listing.sellerName}</Text>
-                <Text style={styles.sellerMeta}>Contact views: {listing.contactViews}</Text>
+                <Text style={[styles.sellerName, { color: colors.text }]}>{listing.sellerName}</Text>
+                <Text style={[styles.sellerMeta, { color: colors.textMuted }]}>Contact views: {listing.contactViews}</Text>
               </View>
             </View>
           </View>
@@ -169,9 +172,9 @@ export default function ListingDetailsScreen() {
       </ScrollView>
 
       {/* Bottom action buttons */}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.contactBtn} onPress={handleContactSeller}>
-          <Text style={styles.contactBtnText}>Contact Seller</Text>
+      <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, Spacing.lg), backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.primary }]} onPress={handleContactSeller}>
+          <Text style={[styles.contactBtnText, { color: colors.white }]}>Contact Seller</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -179,10 +182,10 @@ export default function ListingDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+  safe: { flex: 1 },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   error: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { ...Typography.h3, color: Colors.textSecondary },
+  errorText: { ...Typography.h3 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -225,16 +228,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.sm
   },
-  price: { ...Typography.h1, color: Colors.accent },
+  price: { ...Typography.h1 },
   typeBadge: {
-    backgroundColor: Colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Radius.sm
   },
-  typeBadgeText: { ...Typography.caption, color: Colors.white },
-  title: { ...Typography.h2, color: Colors.text, marginBottom: 4 },
-  location: { ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.md },
+  typeBadgeText: { ...Typography.caption },
+  title: { ...Typography.h2, marginBottom: 4 },
+  location: { ...Typography.body, marginBottom: Spacing.md },
   specs: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -247,48 +249,43 @@ const styles = StyleSheet.create({
     gap: 6
   },
   specIcon: { fontSize: 16 },
-  specText: { ...Typography.bodySmall, color: Colors.text },
+  specText: { ...Typography.bodySmall },
   section: { marginBottom: Spacing.xl },
-  sectionTitle: { ...Typography.h3, color: Colors.text, marginBottom: Spacing.md },
-  description: { ...Typography.body, color: Colors.textSecondary, lineHeight: 22 },
+  sectionTitle: { ...Typography.h3, marginBottom: Spacing.md },
+  description: { ...Typography.body, lineHeight: 22 },
   amenities: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8
   },
   amenity: {
-    backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: Radius.sm
   },
-  amenityText: { ...Typography.bodySmall, color: Colors.text },
+  amenityText: { ...Typography.bodySmall },
   seller: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md
   },
   sellerInfo: { flex: 1 },
-  sellerName: { ...Typography.h4, color: Colors.text },
-  sellerMeta: { ...Typography.bodySmall, color: Colors.textMuted, marginTop: 2 },
+  sellerName: { ...Typography.h4 },
+  sellerMeta: { ...Typography.bodySmall, marginTop: 2 },
   bottomActions: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
     padding: Spacing.lg,
-    paddingBottom: Spacing.lg + 20
   },
   contactBtn: {
-    backgroundColor: Colors.primary,
     borderRadius: Radius.md,
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadow.md
   },
-  contactBtnText: { ...Typography.button, color: Colors.white }
+  contactBtnText: { ...Typography.button }
 });
