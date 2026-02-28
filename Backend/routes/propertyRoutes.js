@@ -8,7 +8,7 @@ const {
   deleteProperty,
   deletePropertyImage,
   getMyListings,
-} = require("../controllers/propertyController");
+} = require("../Controllers/propertyController");
 const { protect } = require("../middlewares/auth");
 const { restrictTo } = require("../middlewares/role");
 const upload = require("../middlewares/upload");

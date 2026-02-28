@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getSellerContact, getMyUnlocks } = require("../controllers/unlockController");
+const { getSellerContact, getMyUnlocks } = require("../Controllers/unlockController");
 const { protect } = require("../middlewares/auth");
 const { restrictTo } = require("../middlewares/role");
 
