@@ -89,7 +89,7 @@ export default function HomeScreen() {
         <TouchableOpacity style={[styles.avatar, { backgroundColor: colors.primary }]} onPress={() => router.push('/profile')}>
           {user?.avatar
             ? <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
-            : <Text style={[styles.avatarFallback, { color: colors.white }]}>{user?.name?.[0] ?? 'U'}</Text>
+            : <Text style={[styles.avatarFallback, { color: colors.onPrimary }]}>{user?.name?.[0] ?? 'U'}</Text>
           }
         </TouchableOpacity>
       </View>
@@ -120,7 +120,7 @@ export default function HomeScreen() {
             <Text style={[
               styles.chipText,
               { color: colors.text },
-              activeFilter === f && { color: colors.white }
+              activeFilter === f && { color: colors.onPrimary }
             ]}>{f}</Text>
           </TouchableOpacity>
         ))}
@@ -217,9 +217,9 @@ const styles = StyleSheet.create({
     ...Shadow.md,
   },
   bannerItem: { flex: 1, alignItems: 'center' },
-  bannerNum: { ...Typography.h2, color: '#FFFFFF' },
-  bannerLabel: { ...Typography.caption, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  bannerDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 4 },
+  bannerNum: { ...Typography.h2, color: Colors.onPrimary },
+  bannerLabel: { ...Typography.caption, color: Colors.onPrimaryMuted, marginTop: 2 },
+  bannerDivider: { width: 1, backgroundColor: Colors.onPrimaryDivider, marginVertical: 4 },
   list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
   card: {
     borderRadius: Radius.xl,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(27,43,75,0.85)', borderRadius: Radius.sm,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  typeBadgeText: { ...Typography.caption, color: '#FFFFFF' },
+  typeBadgeText: { ...Typography.caption, color: Colors.white },
   saveBtn: {
     borderRadius: Radius.full,
     width: 36, height: 36, alignItems: 'center', justifyContent: 'center',

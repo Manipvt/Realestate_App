@@ -57,6 +57,7 @@ const Field = memo(({ label, field, placeholder, keyboard = 'default', multiline
     {error ? <Text style={styles.errorText}>{error}</Text> : null}
   </View>
 ));
+Field.displayName = 'AddListingField';
 
 export default function AddListingScreen() {
   const [step, setStep] = useState(0);
@@ -210,7 +211,7 @@ export default function AddListingScreen() {
           <React.Fragment key={s}>
             <View style={styles.stepItem}>
               <View style={[styles.stepDot, i <= step && styles.stepDotActive, i < step && styles.stepDotDone]}>
-                <Text style={[styles.stepDotText, i <= step && styles.stepDotTextActive]}>
+                <Text style={[styles.stepDotText, i === step && styles.stepDotTextActive, i < step && styles.stepDotTextDone]}>
                   {i < step ? '✓' : i + 1}
                 </Text>
               </View>
@@ -449,7 +450,7 @@ export default function AddListingScreen() {
       <SafeAreaView style={styles.bottomBar} edges={['bottom']}>
         {step < STEPS.length - 1 ? (
           <TouchableOpacity style={styles.nextBtn} onPress={handleNext} activeOpacity={0.85}>
-            <Text style={styles.nextBtnText}>Continue →</Text>
+            <Text style={styles.nextBtnTextPrimary}>Continue →</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -460,7 +461,7 @@ export default function AddListingScreen() {
           >
             {isLoading
               ? <ActivityIndicator color={Colors.white} />
-              : <Text style={styles.nextBtnText}>🚀 Publish Listing</Text>
+              : <Text style={styles.nextBtnTextPublish}>🚀 Publish Listing</Text>
             }
           </TouchableOpacity>
         )}
@@ -495,7 +496,8 @@ const styles = StyleSheet.create({
   stepDotActive: { backgroundColor: Colors.primary },
   stepDotDone: { backgroundColor: Colors.success },
   stepDotText: { ...Typography.caption, color: Colors.textMuted, fontWeight: '700' },
-  stepDotTextActive: { color: Colors.white },
+  stepDotTextActive: { color: Colors.onPrimary },
+  stepDotTextDone: { color: Colors.white },
   stepLine: { flex: 1, height: 2, backgroundColor: Colors.border, marginTop: -16 },
   stepLineActive: { backgroundColor: Colors.success },
   stepLabel: { ...Typography.caption, color: Colors.textMuted },
@@ -522,7 +524,7 @@ const styles = StyleSheet.create({
     flex: 1, borderRadius: Radius.md, padding: 12, alignItems: 'center',
     borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.surface, gap: 4,
   },
-  typeCardActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
+  typeCardActive: { borderColor: Colors.primary, backgroundColor: Colors.surfaceAlt },
   typeEmoji: { fontSize: 22 },
   typeLabel: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
   typeLabelActive: { color: Colors.primary },
@@ -531,7 +533,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6, borderRadius: Radius.sm, alignItems: 'center',
     borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.surface,
   },
-  unitBtnActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
+  unitBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.surfaceAlt },
   unitBtnText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
   unitBtnTextActive: { color: Colors.primary },
   facingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -543,7 +545,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
   },
-  facingChipActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
+  facingChipActive: { borderColor: Colors.primary, backgroundColor: Colors.surfaceAlt },
   facingChipText: { ...Typography.bodySmall, color: Colors.textSecondary, textTransform: 'capitalize' },
   facingChipTextActive: { color: Colors.primary, fontWeight: '700' },
   imagePickerBtn: {
@@ -602,5 +604,6 @@ const styles = StyleSheet.create({
   },
   publishBtn: { backgroundColor: Colors.success },
   btnDisabled: { opacity: 0.7 },
-  nextBtnText: { ...Typography.button, color: Colors.white, fontSize: 16 },
+  nextBtnTextPrimary: { ...Typography.button, color: Colors.onPrimary, fontSize: 16 },
+  nextBtnTextPublish: { ...Typography.button, color: Colors.white, fontSize: 16 },
 });

@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, borderRadius: Radius.md,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  addBtnText: { ...Typography.bodySmall, color: Colors.white, fontWeight: '700' },
+  addBtnText: { ...Typography.bodySmall, color: Colors.onPrimary, fontWeight: '700' },
   summaryBar: {
     flexDirection: 'row', backgroundColor: Colors.surface,
     paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border,
@@ -236,5 +236,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, borderRadius: Radius.md,
     paddingHorizontal: Spacing.xl, paddingVertical: 14, marginTop: Spacing.md, ...Shadow.sm,
   },
-  addFirstBtnText: { ...Typography.button, color: Colors.white },
+  addFirstBtnText: { ...Typography.button, color: Colors.onPrimary },
 });

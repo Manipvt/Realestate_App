@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     ...Shadow.md,
   },
-  logoText: { ...Typography.h2, color: Colors.white, fontWeight: '800' },
+  logoText: { ...Typography.h2, color: Colors.onPrimary, fontWeight: '800' },
   brand: { ...Typography.h1, color: Colors.primary, fontWeight: '800', letterSpacing: -0.5 },
   tagline: { ...Typography.body, color: Colors.textSecondary, marginTop: 4 },
   card: {
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     ...Shadow.sm,
   },
   btnDisabled: { opacity: 0.7 },
-  btnText: { ...Typography.button, color: Colors.white, letterSpacing: 0.5 },
+  btnText: { ...Typography.button, color: Colors.onPrimary, letterSpacing: 0.5 },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.lg },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerText: { ...Typography.bodySmall, color: Colors.textMuted, marginHorizontal: 12 },

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
@@ -34,12 +34,12 @@ const Field = memo(({ label, field, placeholder, keyboard = 'default', secure = 
     {error ? <Text style={styles.errorText}>{error}</Text> : null}
   </View>
 ));
+Field.displayName = 'RegisterField';
 
 export default function RegisterScreen() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: UserRole.BUYER });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { register, isLoading } = useAuthStore();
-
   const handleInputChange = useCallback((field: keyof typeof form, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));
@@ -69,7 +69,7 @@ export default function RegisterScreen() {
       await register(form);
       router.replace('/(tabs)');
     } catch (error: any) {
-      const message = axios.isAxiosError(error)
+      const message = isAxiosError(error)
         ? error.response?.data?.message || error.message || 'Registration failed. Try again.'
         : 'Registration failed. Try again.';
       setErrors({ email: message });
@@ -158,7 +158,7 @@ export default function RegisterScreen() {
               activeOpacity={0.85}
               disabled={isLoading}
             >
-              <Text style={styles.btnText}>{isLoading ? 'Creating account…' : 'Create Account'}</Text>
+                <Text style={styles.btnText}>{isLoading ? 'Creating account…' : 'Create Account'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border,
     backgroundColor: Colors.surface, alignItems: 'center',
   },
-  roleCardActive: { borderColor: Colors.primary, backgroundColor: '#EDF0F7' },
+  roleCardActive: { borderColor: Colors.primary, backgroundColor: Colors.surfaceAlt },
   roleEmoji: { fontSize: 20, marginBottom: 4 },
   roleLabel: { ...Typography.h4, color: Colors.textSecondary, marginBottom: 2 },
   roleLabelActive: { color: Colors.primary },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md, ...Shadow.sm,
   },
   btnDisabled: { opacity: 0.7 },
-  btnText: { ...Typography.button, color: Colors.white, letterSpacing: 0.5 },
+  btnText: { ...Typography.button, color: Colors.onPrimary, letterSpacing: 0.5 },
   loginRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   loginText: { ...Typography.body, color: Colors.textSecondary },
   loginLink: { ...Typography.body, color: Colors.accent, fontWeight: '700' },

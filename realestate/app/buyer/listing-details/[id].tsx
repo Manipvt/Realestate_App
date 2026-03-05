@@ -107,7 +107,7 @@ export default function ListingDetailsScreen() {
           <View style={styles.priceRow}>
             <Text style={[styles.price, { color: colors.accent }]}>Contact for Price</Text>
             <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.typeBadgeText, { color: colors.white }]}>{listing.propertyType.toUpperCase()}</Text>
+              <Text style={[styles.typeBadgeText, { color: colors.onPrimary }]}>{listing.propertyType.toUpperCase()}</Text>
             </View>
           </View>
 
@@ -174,7 +174,7 @@ export default function ListingDetailsScreen() {
       {/* Bottom action buttons */}
       <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, Spacing.lg), backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         <TouchableOpacity style={[styles.contactBtn, { backgroundColor: colors.primary }]} onPress={handleContactSeller}>
-          <Text style={[styles.contactBtnText, { color: colors.white }]}>Contact Seller</Text>
+          <Text style={[styles.contactBtnText, { color: colors.onPrimary }]}>Contact Seller</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

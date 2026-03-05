@@ -43,7 +43,7 @@ export default function MyContactsScreen() {
       {/* Summary */}
       <View style={styles.summary}>
         <Text style={styles.summaryText}>
-          You've unlocked <Text style={styles.summaryBold}>{MOCK_CONTACTS.length} seller contact{MOCK_CONTACTS.length !== 1 ? 's' : ''}</Text>
+          You&apos;ve unlocked <Text style={styles.summaryBold}>{MOCK_CONTACTS.length} seller contact{MOCK_CONTACTS.length !== 1 ? 's' : ''}</Text>
         </Text>
       </View>
 
@@ -51,7 +51,7 @@ export default function MyContactsScreen() {
         <View style={styles.empty}>
           <Text style={styles.emptyEmoji}>📞</Text>
           <Text style={styles.emptyTitle}>No contacts yet</Text>
-          <Text style={styles.emptySub}>When you unlock seller contacts, they'll appear here</Text>
+          <Text style={styles.emptySub}>When you unlock seller contacts, they&apos;ll appear here</Text>
           <TouchableOpacity style={styles.browseBtn} onPress={() => router.replace('/(tabs)')}>
             <Text style={styles.browseBtnText}>Browse Properties</Text>
           </TouchableOpacity>
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, margin: Spacing.lg,
     borderRadius: Radius.lg, padding: Spacing.md, alignItems: 'center',
   },
-  summaryText: { ...Typography.body, color: 'rgba(255,255,255,0.8)' },
-  summaryBold: { fontWeight: '700', color: Colors.white },
+  summaryText: { ...Typography.body, color: Colors.onPrimaryMuted },
+  summaryBold: { fontWeight: '700', color: Colors.onPrimary },
   list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
   card: {
     backgroundColor: Colors.surface, borderRadius: Radius.xl,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { ...Typography.h3, color: Colors.white },
+  avatarText: { ...Typography.h3, color: Colors.onPrimary },
   sellerInfo: { flex: 1 },
   sellerName: { ...Typography.h4, color: Colors.text },
   bizName: { ...Typography.bodySmall, color: Colors.textSecondary },
@@ -187,9 +187,9 @@ const styles = StyleSheet.create({
   callBtnText: { ...Typography.bodySmall, color: Colors.success, fontWeight: '700' },
   waBtn: {
     flex: 1, height: 38, borderRadius: Radius.md,
-    backgroundColor: '#E8F9EE', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.successLight, alignItems: 'center', justifyContent: 'center',
   },
-  waBtnText: { ...Typography.bodySmall, color: '#25D366', fontWeight: '700' },
+  waBtnText: { ...Typography.bodySmall, color: Colors.success, fontWeight: '700' },
   emailBtn: {
     flex: 1, height: 38, borderRadius: Radius.md,
     backgroundColor: Colors.accentSoft, alignItems: 'center', justifyContent: 'center',
@@ -204,5 +204,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, borderRadius: Radius.md,
     paddingHorizontal: Spacing.xl, paddingVertical: 14, marginTop: Spacing.md, ...Shadow.sm,
   },
-  browseBtnText: { ...Typography.button, color: Colors.white },
+  browseBtnText: { ...Typography.button, color: Colors.onPrimary },
 });

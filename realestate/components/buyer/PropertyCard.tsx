@@ -2,12 +2,16 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Listing } from '@/types/listing.types';
 import { router } from 'expo-router';
+import { useTheme } from '@/hooks/use-theme-color';
 
 interface PropertyCardProps {
   listing: Listing;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ listing }) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -29,13 +33,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ listing }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useTheme>) => StyleSheet.create({
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -51,11 +55,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
+    color: colors.text,
     marginBottom: 4,
   },
   location: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   details: {
@@ -66,15 +71,15 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2563eb',
+    color: colors.accent,
   },
   area: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
   },
   type: {
     fontSize: 12,
-    color: '#888',
+    color: colors.textMuted,
     textTransform: 'capitalize',
   },
 });

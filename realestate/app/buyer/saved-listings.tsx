@@ -78,7 +78,7 @@ export default function SavedListingsScreen() {
                   style={[styles.contactBtn, { backgroundColor: colors.accent }]}
                   onPress={() => router.push({ pathname: '/buyer/payment', params: { listingId: item.id, listingTitle: item.title } })}
                 >
-                  <Text style={[styles.contactBtnText, { color: '#FFFFFF' }]}>Unlock Contact 🔓</Text>
+                  <Text style={[styles.contactBtnText, { color: Colors.white }]}>Unlock Contact 🔓</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -140,5 +140,5 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.xl, paddingVertical: 14, marginTop: Spacing.md, ...Shadow.sm,
   },
-  browseBtnText: { ...Typography.button, color: '#FFFFFF' },
+  browseBtnText: { ...Typography.button, color: Colors.onPrimary },
 });

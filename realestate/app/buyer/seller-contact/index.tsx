@@ -192,7 +192,7 @@ export default function SellerContactScreen() {
           />
           <ContactAction
             emoji="💬" label="WhatsApp" sub="Send a message"
-            color="#25D366" onPress={handleWhatsApp}
+            color={Colors.success} onPress={handleWhatsApp}
           />
           <ContactAction
             emoji="✉️" label="Send Email" sub={emailAddress}
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     width: 56, height: 56, borderRadius: 28,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
   },
-  sellerAvatarText: { ...Typography.h2, color: Colors.white },
+  sellerAvatarText: { ...Typography.h2, color: Colors.onPrimary },
   sellerDetails: { flex: 1 },
   sellerName: { ...Typography.h3, color: Colors.text, marginBottom: 2 },
   sellerBiz: { ...Typography.bodySmall, color: Colors.textSecondary, marginBottom: 6 },

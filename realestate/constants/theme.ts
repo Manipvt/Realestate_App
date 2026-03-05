@@ -1,8 +1,15 @@
+import { Appearance } from 'react-native';
+
 const tintColorLight = '#1B2B4B';
 const tintColorDark = '#E8A87C';
 
 const lightColors = {
     primary: '#1B2B4B',
+    onPrimary: '#FFFFFF',
+    onPrimaryMuted: 'rgba(255,255,255,0.72)',
+    onPrimarySubtle: 'rgba(255,255,255,0.55)',
+    onPrimaryDivider: 'rgba(255,255,255,0.22)',
+    onPrimaryOverlay: 'rgba(255,255,255,0.12)',
     primaryLight: '#2E4270',
     accent: '#C97B4B',
     accentLight: '#E8A87C',
@@ -32,10 +39,15 @@ const lightColors = {
   };
 
 const darkColors = {
-    primary: '#F0EAE1',
-    primaryLight: '#D1C8B8',
-    accent: '#E8A87C',
-    accentLight: '#F5E6D8',
+  primary: '#F0EAE1',
+  onPrimary: '#121212',
+  onPrimaryMuted: 'rgba(18,18,18,0.72)',
+  onPrimarySubtle: 'rgba(18,18,18,0.55)',
+  onPrimaryDivider: 'rgba(18,18,18,0.22)',
+  onPrimaryOverlay: 'rgba(18,18,18,0.12)',
+  primaryLight: '#D1C8B8',
+  accent: '#C97B4B',
+  accentLight: '#E8A87C',
     accentSoft: '#4A3324',
     background: '#121212',
     surface: '#1E1E1E',
@@ -45,11 +57,11 @@ const darkColors = {
     textMuted: '#7A7A7A',
     border: '#333333',
     borderLight: '#444444',
-    success: '#4ADE80',
+  success: '#2D7A4F',
     successLight: '#143823',
-    error: '#F87171',
+  error: '#C0392B',
     errorLight: '#421E1E',
-    warning: '#FBBF24',
+  warning: '#D4820A',
     warningLight: '#45350E',
     white: '#FFFFFF',
     black: '#000000',
@@ -61,11 +73,25 @@ const darkColors = {
     tabIconSelected: tintColorDark,
   };
 
-export const Colors = {
-  ...lightColors,
+type ThemeColors = typeof lightColors;
+
+const colorRegistry: ThemeColors & { light: ThemeColors; dark: ThemeColors } = {
   light: lightColors,
   dark: darkColors,
-};
+} as ThemeColors & { light: ThemeColors; dark: ThemeColors };
+
+(Object.keys(lightColors) as Array<keyof ThemeColors>).forEach((token) => {
+  Object.defineProperty(colorRegistry, token, {
+    get() {
+      const scheme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+      return (scheme === 'dark' ? darkColors : lightColors)[token];
+    },
+    enumerable: true,
+    configurable: false,
+  });
+});
+
+export const Colors = colorRegistry;
 
 export const Typography = {
   // Display sizes

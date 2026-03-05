@@ -80,30 +80,30 @@ export default function ProfileScreen() {
               )
             }
             <View style={[styles.rolePill, isSeller && isBuyer ? [styles.roleBoth, { backgroundColor: colors.accent }] : isSeller ? styles.roleSeller : styles.roleBuyer]}>
-              <Text style={[styles.roleText, { color: colors.white }]}>
+              <Text style={[styles.roleText, { color: isSeller && isBuyer ? colors.white : colors.onPrimary }]}>
                 {isSeller && isBuyer ? '⚡ Buyer & Seller' : isSeller ? '🏠 Seller' : '🔍 Buyer'}
               </Text>
             </View>
           </View>
           <View style={styles.userInfo}>
-            <Text style={[styles.userName, { color: colors.white }]}>{user?.name}</Text>
+            <Text style={[styles.userName, { color: colors.onPrimary }]}>{user?.name}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
             <Text style={styles.userPhone}>{user?.phone}</Text>
           </View>
           {isSeller && user?.sellerProfile && (
             <View style={styles.sellerStats}>
               <View style={styles.statItem}>
-                <Text style={[styles.statNum, { color: colors.white }]}>{user.sellerProfile.totalListings}</Text>
+                <Text style={[styles.statNum, { color: colors.onPrimary }]}>{user.sellerProfile.totalListings}</Text>
                 <Text style={styles.statLabel}>Listings</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNum, { color: colors.white }]}>⭐ {user.sellerProfile.rating}</Text>
+                <Text style={[styles.statNum, { color: colors.onPrimary }]}>⭐ {user.sellerProfile.rating}</Text>
                 <Text style={styles.statLabel}>Rating</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNum, { color: colors.white }]}>{user.verified ? '✓' : '✗'}</Text>
+                <Text style={[styles.statNum, { color: colors.onPrimary }]}>{user.verified ? '✓' : '✗'}</Text>
                 <Text style={styles.statLabel}>Verified</Text>
               </View>
             </View>
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     ...Shadow.lg,
   },
   avatarWrap: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.md },
-  avatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)' },
+  avatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: Colors.onPrimarySubtle },
   avatarFallback: {
     width: 64, height: 64, borderRadius: 32,
     alignItems: 'center', justifyContent: 'center',
@@ -183,21 +183,21 @@ const styles = StyleSheet.create({
   avatarLetter: { ...Typography.h1 },
   rolePill: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: Radius.full },
   roleBoth: {},
-  roleSeller: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  roleBuyer: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  roleSeller: { backgroundColor: Colors.onPrimaryDivider },
+  roleBuyer: { backgroundColor: Colors.onPrimaryDivider },
   roleText: { ...Typography.bodySmall, fontWeight: '700' },
   userInfo: { marginBottom: Spacing.md },
   userName: { ...Typography.h2, marginBottom: 4 },
-  userEmail: { ...Typography.body, color: 'rgba(255,255,255,0.7)' },
-  userPhone: { ...Typography.bodySmall, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  userEmail: { ...Typography.body, color: Colors.onPrimaryMuted },
+  userPhone: { ...Typography.bodySmall, color: Colors.onPrimarySubtle, marginTop: 2 },
   sellerStats: {
-    flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row', backgroundColor: Colors.onPrimaryOverlay,
     borderRadius: Radius.md, paddingVertical: Spacing.md,
   },
   statItem: { flex: 1, alignItems: 'center' },
   statNum: { ...Typography.h3 },
-  statLabel: { ...Typography.caption, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 4 },
+  statLabel: { ...Typography.caption, color: Colors.onPrimaryMuted, marginTop: 2 },
+  statDivider: { width: 1, backgroundColor: Colors.onPrimaryDivider, marginVertical: 4 },
   section: { marginBottom: Spacing.lg },
   sectionTitle: { ...Typography.label, marginLeft: Spacing.lg, marginBottom: Spacing.sm },
   menuCard: {

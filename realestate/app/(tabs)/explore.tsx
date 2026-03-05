@@ -151,7 +151,7 @@ export default function ExploreScreen() {
                 <Text style={[
                   styles.filterChipText,
                   { color: colors.text },
-                  selectedType === t.id && { color: colors.white }
+                  selectedType === t.id && { color: colors.onPrimary }
                 ]}>
                   {t.label}
                 </Text>
@@ -174,7 +174,7 @@ export default function ExploreScreen() {
                 <Text style={[
                   styles.filterChipText,
                   { color: colors.text },
-                  selectedCity === c && { color: colors.white }
+                  selectedCity === c && { color: colors.onPrimary }
                 ]}>{c}</Text>
               </TouchableOpacity>
             ))}
@@ -196,7 +196,7 @@ export default function ExploreScreen() {
                 <Text style={[
                   styles.filterChipText,
                   { color: colors.text },
-                  selectedSort === option.id && { color: colors.white }
+                  selectedSort === option.id && { color: colors.onPrimary }
                 ]}>
                   {option.label}
                 </Text>

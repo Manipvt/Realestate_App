@@ -97,8 +97,8 @@ export default function LeadsScreen() {
             {/* Message */}
             {item.message && (
               <View style={styles.messageBox}>
-                <Text style={styles.messageLabel}>💬 Buyer's message:</Text>
-                <Text style={styles.messageText}>"{item.message}"</Text>
+                <Text style={styles.messageLabel}>💬 Buyer&apos;s message:</Text>
+                <Text style={styles.messageText}>&quot;{item.message}&quot;</Text>
               </View>
             )}
 
@@ -126,7 +126,7 @@ export default function LeadsScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>👥</Text>
             <Text style={styles.emptyTitle}>No leads yet</Text>
-            <Text style={styles.emptySub}>When buyers unlock your contact, they'll appear here</Text>
+            <Text style={styles.emptySub}>When buyers unlock your contact, they&apos;ll appear here</Text>
           </View>
         }
       />
@@ -153,9 +153,9 @@ const styles = StyleSheet.create({
     ...Shadow.lg,
   },
   revenueItem: { flex: 1, alignItems: 'center' },
-  revenueNum: { ...Typography.h2, color: Colors.white, marginBottom: 4 },
-  revenueLabel: { ...Typography.caption, color: 'rgba(255,255,255,0.6)' },
-  revenueDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 4 },
+  revenueNum: { ...Typography.h2, color: Colors.onPrimary, marginBottom: 4 },
+  revenueLabel: { ...Typography.caption, color: Colors.onPrimaryMuted },
+  revenueDivider: { width: 1, backgroundColor: Colors.onPrimaryDivider, marginVertical: 4 },
   list: { paddingHorizontal: Spacing.lg, paddingBottom: 100 },
   card: {
     backgroundColor: Colors.surface, borderRadius: Radius.xl,
@@ -194,9 +194,9 @@ const styles = StyleSheet.create({
   callBtnText: { ...Typography.bodySmall, color: Colors.success, fontWeight: '700' },
   waBtn: {
     flex: 1, height: 40, borderRadius: Radius.md,
-    backgroundColor: '#E8F9EE', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.successLight, alignItems: 'center', justifyContent: 'center',
   },
-  waBtnText: { ...Typography.bodySmall, color: '#25D366', fontWeight: '700' },
+  waBtnText: { ...Typography.bodySmall, color: Colors.success, fontWeight: '700' },
   empty: { alignItems: 'center', paddingTop: 60, gap: Spacing.sm },
   emptyEmoji: { fontSize: 56 },
   emptyTitle: { ...Typography.h2, color: Colors.text },

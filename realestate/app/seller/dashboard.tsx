@@ -10,9 +10,9 @@ import { ListingStatus } from '@/types';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
 
 const QUICK_ACTIONS = [
-  { icon: '➕', label: 'Add Listing', route: '/seller/add-listing', bg: Colors.primary },
-  { icon: '🏠', label: 'My Listings', route: '/seller/my-listing', bg: Colors.accent },
-  { icon: '👥', label: 'Leads', route: '/seller/leads', bg: '#2D7A4F' },
+  { icon: '➕', label: 'Add Listing', route: '/seller/add-listing', bg: Colors.primary, fg: Colors.onPrimary },
+  { icon: '🏠', label: 'My Listings', route: '/seller/my-listing', bg: Colors.accent, fg: Colors.white },
+  { icon: '👥', label: 'Leads', route: '/seller/leads', bg: Colors.success, fg: Colors.white },
 ];
 
 export default function SellerDashboardScreen() {
@@ -92,7 +92,7 @@ export default function SellerDashboardScreen() {
               activeOpacity={0.85}
             >
               <Text style={styles.quickIcon}>{a.icon}</Text>
-              <Text style={styles.quickLabel}>{a.label}</Text>
+              <Text style={[styles.quickLabel, { color: a.fg }]}>{a.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -153,16 +153,16 @@ const styles = StyleSheet.create({
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', ...Shadow.sm,
   },
-  profileBtnText: { ...Typography.h3, color: Colors.white },
+  profileBtnText: { ...Typography.h3, color: Colors.onPrimary },
   statsCard: {
     flexDirection: 'row', backgroundColor: Colors.primary,
     borderRadius: Radius.xl, padding: Spacing.lg,
     marginBottom: Spacing.md, ...Shadow.lg,
   },
   statItem: { flex: 1, alignItems: 'center' },
-  statNum: { ...Typography.h2, color: Colors.white, marginBottom: 4 },
-  statLabel: { ...Typography.caption, color: 'rgba(255,255,255,0.6)' },
-  statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 4 },
+  statNum: { ...Typography.h2, color: Colors.onPrimary, marginBottom: 4 },
+  statLabel: { ...Typography.caption, color: Colors.onPrimaryMuted },
+  statDivider: { width: 1, backgroundColor: Colors.onPrimaryDivider, marginVertical: 4 },
   ratingCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: Colors.surface, borderRadius: Radius.lg,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', gap: Spacing.sm, ...Shadow.md,
   },
   quickIcon: { fontSize: 32 },
-  quickLabel: { ...Typography.h4, color: Colors.white },
+  quickLabel: { ...Typography.h4 },
   listingRow: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
     backgroundColor: Colors.surface, borderRadius: Radius.lg,
