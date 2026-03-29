@@ -1,6 +1,11 @@
 import { create } from 'zustand';
-import { Listing, PropertyType, ListingStatus } from '@/types';
+import { Listing, PropertyType } from '@/types';
 import { listingApi } from '@/services/api/listing.api';
+
+const DEFAULT_LISTINGS_PAGE_SIZE = 20;
+
+type ListingFilters = { propertyType?: PropertyType; city?: string; minPrice?: number; maxPrice?: number };
+type FetchListingsOptions = { reset?: boolean; page?: number; limit?: number };
 
 interface ListingState {
   listings: Listing[];
@@ -8,8 +13,14 @@ interface ListingState {
   selectedListing: Listing | null;
   savedListings: string[];
   isLoading: boolean;
-  filters: { propertyType?: PropertyType; city?: string; minPrice?: number; maxPrice?: number };
-  fetchListings: () => Promise<void>;
+  isFetchingMore: boolean;
+  page: number;
+  pages: number;
+  total: number;
+  hasMore: boolean;
+  filters: ListingFilters;
+  fetchListings: (options?: FetchListingsOptions) => Promise<void>;
+  loadMoreListings: () => Promise<void>;
   fetchMyListings: () => Promise<void>;
   fetchSavedListings: () => Promise<void>;
   selectListing: (id: string) => void;
@@ -17,7 +28,7 @@ interface ListingState {
   addListing: (listing: Partial<Listing>) => Promise<void>;
   updateListing: (id: string, data: Partial<Listing>) => Promise<void>;
   deleteListing: (id: string) => Promise<void>;
-  setFilters: (filters: ListingState['filters']) => void;
+  setFilters: (filters: ListingFilters) => void;
 }
 
 export const useListingStore = create<ListingState>((set, get) => ({
@@ -26,17 +37,56 @@ export const useListingStore = create<ListingState>((set, get) => ({
   selectedListing: null,
   savedListings: [],
   isLoading: false,
+  isFetchingMore: false,
+  page: 1,
+  pages: 1,
+  total: 0,
+  hasMore: false,
   filters: {},
 
-  fetchListings: async () => {
-    set({ isLoading: true });
+  fetchListings: async (options = {}) => {
+    const { reset = true, page = 1, limit = DEFAULT_LISTINGS_PAGE_SIZE } = options;
+
+    set(reset ? { isLoading: true } : { isFetchingMore: true });
+
     try {
-      const listings = await listingApi.getListings(get().filters);
-      set({ listings: listings || [], isLoading: false });
+      const result = await listingApi.getListings({
+        ...get().filters,
+        page,
+        limit,
+      });
+
+      set((state) => ({
+        listings: reset ? result.listings : [...state.listings, ...result.listings],
+        page: result.page,
+        pages: result.pages,
+        total: result.total,
+        hasMore: result.hasMore,
+        isLoading: false,
+        isFetchingMore: false,
+      }));
     } catch (error) {
       console.error('Failed to fetch listings:', error);
-      set({ listings: [], isLoading: false });
+      set((state) => ({
+        listings: reset ? [] : state.listings,
+        hasMore: false,
+        isLoading: false,
+        isFetchingMore: false,
+      }));
     }
+  },
+
+  loadMoreListings: async () => {
+    const state = get();
+    if (state.isLoading || state.isFetchingMore || !state.hasMore) {
+      return;
+    }
+
+    await state.fetchListings({
+      reset: false,
+      page: state.page + 1,
+      limit: DEFAULT_LISTINGS_PAGE_SIZE,
+    });
   },
 
   fetchMyListings: async () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, FlatList, Image, ActivityIndicator,
@@ -7,17 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useListingStore } from '@/store/listingStore';
 import { useAuthStore } from '@/store/authStore';
-import { Listing, PropertyType } from '@/types';
+import { Listing } from '@/types';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme-color';
 
 const FILTERS = ['All', 'Apartment', 'Land', 'Villa', 'Commercial'];
-
-function formatPrice(price: number) {
-  if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
-  if (price >= 100000) return `₹${(price / 100000).toFixed(1)}L`;
-  return `₹${price.toLocaleString('en-IN')}`;
-}
 
 function PropertyCard({ item, isSaved, onToggleSave, colors }: { item: Listing; isSaved: boolean; onToggleSave: () => void, colors: any }) {
   return (
@@ -58,22 +52,33 @@ function PropertyCard({ item, isSaved, onToggleSave, colors }: { item: Listing; 
 }
 
 export default function HomeScreen() {
-  const { listings, isLoading, fetchListings, savedListings, toggleSave, fetchSavedListings } = useListingStore();
+  const {
+    listings,
+    isLoading,
+    isFetchingMore,
+    fetchListings,
+    loadMoreListings,
+    savedListings,
+    toggleSave,
+    fetchSavedListings,
+  } = useListingStore();
   const { user } = useAuthStore();
   const colors = useTheme();
   const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
-    fetchListings();
+    fetchListings({ reset: true });
     // Fetch saved listings if user is logged in
     if (user) {
       fetchSavedListings();
     }
-  }, [user]);
+  }, [user, fetchListings, fetchSavedListings]);
 
-  const filtered = activeFilter === 'All'
-    ? listings
-    : listings.filter((l) => l.propertyType.toLowerCase() === activeFilter.toLowerCase());
+  const filtered = useMemo(() => (
+    activeFilter === 'All'
+      ? listings
+      : listings.filter((l) => l.propertyType.toLowerCase() === activeFilter.toLowerCase())
+  ), [activeFilter, listings]);
 
   // Calculate unique cities from actual listings
   const uniqueCities = new Set(listings.map(l => l.location.city)).size;
@@ -154,6 +159,12 @@ export default function HomeScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(i) => i.id}
+          onEndReached={loadMoreListings}
+          onEndReachedThreshold={0.5}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
           renderItem={({ item }) => (
             <PropertyCard
               item={item}
@@ -164,6 +175,13 @@ export default function HomeScreen() {
           )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            isFetchingMore ? (
+              <View style={styles.paginationLoader}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🏚</Text>
@@ -251,6 +269,7 @@ const styles = StyleSheet.create({
   metaText: { ...Typography.bodySmall },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   loaderText: { ...Typography.body },
+  paginationLoader: { paddingVertical: Spacing.md },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyEmoji: { fontSize: 48, marginBottom: Spacing.md },
   emptyText: { ...Typography.h3 },

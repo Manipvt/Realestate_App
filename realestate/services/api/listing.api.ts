@@ -1,6 +1,24 @@
 import { apiClient } from './client';
 import { Listing } from '@/types/listing.types';
 
+export interface ListingQuery {
+  propertyType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  city?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface ListingPage {
+  listings: Listing[];
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 const normalizeFacing = (facing?: string) => {
   if (!facing) return undefined;
   return facing.trim().toLowerCase().replace(/[\s_]+/g, '-');
@@ -54,15 +72,25 @@ const isLocalImageUri = (uri: string) => /^(file|content|ph):/i.test(uri);
 
 export const listingApi = {
   // Get all listings with filters
-  getListings: async (filters?: {
-    propertyType?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    city?: string;
-  }) => {
+  getListings: async (filters?: ListingQuery): Promise<ListingPage> => {
     const response = await apiClient.get('/properties', { params: filters });
-    const properties = response.data.properties || response.data || [];
-    return properties.map(mapPropertyToListing);
+    const payload = response.data || {};
+    const properties = payload.properties || payload.data || [];
+    const listings = properties.map(mapPropertyToListing);
+
+    const total = Number(payload.total) || listings.length;
+    const page = Number(payload.page) || filters?.page || 1;
+    const pages = Number(payload.pages) || 1;
+    const limit = Number(payload.limit) || filters?.limit || listings.length || 10;
+
+    return {
+      listings,
+      total,
+      page,
+      pages,
+      limit,
+      hasMore: page < pages,
+    };
   },
 
   // Get single listing

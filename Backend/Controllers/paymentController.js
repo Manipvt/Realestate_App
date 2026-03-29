@@ -30,7 +30,7 @@ exports.createPaymentOrder = catchAsync(async (req, res, next) => {
     buyer: req.user.id,
     property: propertyId,
     expiresAt: { $gt: new Date() },
-  });
+  }).lean();
 
   if (existingUnlock) {
     return res.status(200).json({
@@ -127,7 +127,8 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
 exports.getMyPayments = catchAsync(async (req, res) => {
   const payments = await Payment.find({ buyer: req.user.id })
     .populate("property", "title location.city propertyType")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   res.status(200).json({ success: true, count: payments.length, payments });
 });

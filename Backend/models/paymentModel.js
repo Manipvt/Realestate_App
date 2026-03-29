@@ -38,4 +38,8 @@ const paymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+paymentSchema.index({ buyer: 1, createdAt: -1 });
+paymentSchema.index({ property: 1, buyer: 1 });
+paymentSchema.index({ "razorpay.orderId": 1 }, { unique: true });
+
 module.exports = mongoose.model("Payment", paymentSchema);

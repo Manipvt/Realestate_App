@@ -8,17 +8,11 @@ import { useListingStore } from '@/store/listingStore';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme-color';
 
-function formatPrice(p: number) {
-  if (p >= 10000000) return `₹${(p / 10000000).toFixed(1)}Cr`;
-  if (p >= 100000) return `₹${(p / 100000).toFixed(1)}L`;
-  return `₹${p.toLocaleString('en-IN')}`;
-}
-
 export default function SavedListingsScreen() {
   const { listings, savedListings, fetchListings, toggleSave } = useListingStore();
   const colors = useTheme();
 
-  useEffect(() => { fetchListings(); }, []);
+  useEffect(() => { fetchListings(); }, [fetchListings]);
 
   const saved = listings.filter((l) => savedListings.includes(l.id));
 
@@ -45,6 +39,10 @@ export default function SavedListingsScreen() {
         <FlatList
           data={saved}
           keyExtractor={(i) => i.id}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (

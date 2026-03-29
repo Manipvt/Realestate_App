@@ -33,5 +33,7 @@ const unlockSchema = new mongoose.Schema(
 
 // Prevent duplicate unlocks for same buyer + property
 unlockSchema.index({ buyer: 1, property: 1 }, { unique: true });
+unlockSchema.index({ buyer: 1, expiresAt: 1 });
+unlockSchema.index({ buyer: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Unlock", unlockSchema);

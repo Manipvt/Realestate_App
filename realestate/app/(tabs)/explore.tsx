@@ -6,8 +6,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useListingStore } from '@/store/listingStore';
-import { Listing, PropertyType } from '@/types';
-import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
+import { PropertyType } from '@/types';
+import { Typography, Spacing, Radius, Shadow } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme-color';
 
 const CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Nashik'];
@@ -26,14 +26,15 @@ const SORT_OPTIONS = [
   { id: 'type', label: 'Property Type', emoji: '🏠' },
 ];
 
-function formatPrice(price: number) {
-  if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
-  if (price >= 100000) return `₹${(price / 100000).toFixed(1)}L`;
-  return `₹${price.toLocaleString('en-IN')}`;
-}
-
 export default function ExploreScreen() {
-  const { listings, fetchListings } = useListingStore();
+  const {
+    listings,
+    isLoading,
+    isFetchingMore,
+    fetchListings,
+    loadMoreListings,
+    setFilters,
+  } = useListingStore();
   const colors = useTheme();
   const [query, setQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
@@ -41,7 +42,13 @@ export default function ExploreScreen() {
   const [selectedSort, setSelectedSort] = useState<string>('newest');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => { fetchListings(); }, []);
+  useEffect(() => {
+    setFilters({
+      city: selectedCity ?? undefined,
+      propertyType: selectedType ?? undefined,
+    });
+    fetchListings({ reset: true, page: 1 });
+  }, [selectedCity, selectedType, setFilters, fetchListings]);
 
   const filtered = (listings || []).filter((l) => {
     const matchQuery = !query || l.title.toLowerCase().includes(query.toLowerCase())
@@ -210,6 +217,12 @@ export default function ExploreScreen() {
       <FlatList
         data={sorted}
         keyExtractor={(i) => i.id}
+        onEndReached={loadMoreListings}
+        onEndReachedThreshold={0.5}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        removeClippedSubviews
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
@@ -235,11 +248,24 @@ export default function ExploreScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🔎</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No results found</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>Try adjusting your search or filters</Text>
-          </View>
+          isLoading ? (
+            <View style={styles.empty}>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>Loading properties...</Text>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>🔎</Text>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No results found</Text>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>Try adjusting your search or filters</Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          isFetchingMore ? (
+            <View style={styles.paginationLoader}>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>Loading more...</Text>
+            </View>
+          ) : null
         }
       />
     </SafeAreaView>
@@ -320,6 +346,7 @@ const styles = StyleSheet.create({
   resultPrice: { ...Typography.h4 },
   resultArea: { ...Typography.caption, marginTop: 2 },
   empty: { alignItems: 'center', paddingTop: 60, gap: 8 },
+  paginationLoader: { paddingVertical: Spacing.md, alignItems: 'center' },
   emptyEmoji: { fontSize: 48 },
   emptyTitle: { ...Typography.h3 },
   emptySubtitle: { ...Typography.body },

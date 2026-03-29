@@ -91,5 +91,8 @@ const propertySchema = new mongoose.Schema(
 propertySchema.index({ "location.city": 1, propertyType: 1, status: 1 });
 propertySchema.index({ price: 1 });
 propertySchema.index({ seller: 1 });
+propertySchema.index({ status: 1, createdAt: -1 });
+propertySchema.index({ seller: 1, createdAt: -1 });
+propertySchema.index({ "roadAccess.hasRoadAccess": 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Property", propertySchema);

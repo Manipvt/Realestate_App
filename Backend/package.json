@@ -5,11 +5,14 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test:load:health": "autocannon -c 80 -d 20 -p 10 http://localhost:5000/health",
+    "test:load:listings": "node scripts/load-test-listings.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.0.0",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -25,6 +28,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "autocannon": "^7.14.0",
     "nodemon": "^3.0.1"
   }
 }

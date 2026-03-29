@@ -17,7 +17,9 @@ exports.getSellerContact = catchAsync(async (req, res, next) => {
     buyer: req.user.id,
     property: propertyId,
     expiresAt: { $gt: new Date() },
-  });
+  })
+    .select("seller expiresAt")
+    .lean();
 
   if (!unlock && !allowUnpaidPreview) {
     return next(
@@ -63,7 +65,8 @@ exports.getMyUnlocks = catchAsync(async (req, res) => {
     expiresAt: { $gt: new Date() },
   })
     .populate("property", "title location.city propertyType price images")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   res.status(200).json({ success: true, count: unlocks.length, unlocks });
 });

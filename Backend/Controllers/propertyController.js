@@ -3,6 +3,41 @@ const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const { uploadMultipleImages, deleteMultipleImages } = require("../services/cloudinaryService");
 
+const LISTING_CACHE_TTL_MS = Number(process.env.LISTING_CACHE_TTL_MS) || 30 * 1000;
+const LISTING_CACHE_MAX_ENTRIES = Number(process.env.LISTING_CACHE_MAX_ENTRIES) || 200;
+const listingCache = new Map();
+
+const buildCacheKey = (query, page, limit) =>
+  JSON.stringify({ query, page, limit });
+
+const getCachedListings = (key) => {
+  const entry = listingCache.get(key);
+  if (!entry) return null;
+
+  if (entry.expiresAt < Date.now()) {
+    listingCache.delete(key);
+    return null;
+  }
+
+  return entry.data;
+};
+
+const setCachedListings = (key, data) => {
+  if (listingCache.size >= LISTING_CACHE_MAX_ENTRIES) {
+    const oldestKey = listingCache.keys().next().value;
+    if (oldestKey) listingCache.delete(oldestKey);
+  }
+
+  listingCache.set(key, {
+    data,
+    expiresAt: Date.now() + LISTING_CACHE_TTL_MS,
+  });
+};
+
+const clearListingCache = () => {
+  listingCache.clear();
+};
+
 const normalizeFacing = (facing) => {
   if (!facing || typeof facing !== "string") return facing;
   return facing.trim().toLowerCase().replace(/[\s_]+/g, "-");
@@ -82,6 +117,8 @@ exports.createProperty = catchAsync(async (req, res, next) => {
     images,
   });
 
+  clearListingCache();
+
   res.status(201).json({ success: true, property });
 });
 
@@ -109,22 +146,35 @@ exports.getAllProperties = catchAsync(async (req, res) => {
   const limit = Math.min(50, parseInt(req.query.limit) || 10);
   const skip  = (page - 1) * limit;
 
+  const cacheKey = buildCacheKey(query, page, limit);
+  const cached = getCachedListings(cacheKey);
+
+  if (cached) {
+    return res.status(200).json(cached);
+  }
+
   const [properties, total] = await Promise.all([
     Property.find(query)
-      .select("-seller") // Hide seller reference in list — unlocking reveals it
+      .select("title propertyType price area location.city location.state amenities facing images status createdAt")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Property.countDocuments(query),
   ]);
 
-  res.status(200).json({
+  const response = {
     success: true,
     total,
     page,
     pages: Math.ceil(total / limit),
+    limit,
     properties,
-  });
+  };
+
+  setCachedListings(cacheKey, response);
+
+  res.status(200).json(response);
 });
 
 /**
@@ -132,7 +182,7 @@ exports.getAllProperties = catchAsync(async (req, res) => {
  * Public — returns property details WITHOUT seller contact info
  */
 exports.getProperty = catchAsync(async (req, res, next) => {
-  const property = await Property.findById(req.params.id).select("-seller");
+  const property = await Property.findById(req.params.id).select("-seller").lean();
   if (!property) return next(new AppError("Property not found.", 404));
 
   res.status(200).json({ success: true, property });
@@ -182,6 +232,8 @@ exports.updateProperty = catchAsync(async (req, res, next) => {
     { new: true, runValidators: true }
   );
 
+  clearListingCache();
+
   res.status(200).json({ success: true, property: updated });
 });
 
@@ -202,6 +254,7 @@ exports.deleteProperty = catchAsync(async (req, res, next) => {
   if (publicIds.length) await deleteMultipleImages(publicIds);
 
   await property.deleteOne();
+  clearListingCache();
 
   res.status(200).json({ success: true, message: "Property deleted successfully." });
 });
@@ -226,6 +279,7 @@ exports.deletePropertyImage = catchAsync(async (req, res, next) => {
 
   property.images = property.images.filter((img) => img.public_id !== publicId);
   await property.save();
+  clearListingCache();
 
   res.status(200).json({ success: true, message: "Image deleted.", images: property.images });
 });
@@ -235,6 +289,8 @@ exports.deletePropertyImage = catchAsync(async (req, res, next) => {
  * Seller views their own listings
  */
 exports.getMyListings = catchAsync(async (req, res) => {
-  const properties = await Property.find({ seller: req.user.id }).sort({ createdAt: -1 });
+  const properties = await Property.find({ seller: req.user.id })
+    .sort({ createdAt: -1 })
+    .lean();
   res.status(200).json({ success: true, count: properties.length, properties });
 });
